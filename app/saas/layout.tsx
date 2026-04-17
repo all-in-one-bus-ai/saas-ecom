@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
-import { isRedirectError } from 'next/dist/client/components/redirect';
-import { requireSuperAdmin } from '@/lib/auth/get-session';
+import { getSession } from '@/lib/auth/get-session';
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { LayoutDashboard, Building2, Users, CreditCard, Settings, ChartBar as BarChart3, ShoppingBag, Activity } from 'lucide-react';
@@ -12,12 +11,12 @@ export default async function SaasLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let session;
-  try {
-    session = await requireSuperAdmin();
-  } catch (err) {
-    if (isRedirectError(err)) throw err;
+  const session = await getSession();
+  if (!session) {
     redirect('/login');
+  }
+  if (session.systemRole !== 'super_admin') {
+    redirect('/login?error=unauthorized');
   }
 
   const navGroups = [
