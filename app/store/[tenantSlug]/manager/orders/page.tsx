@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -25,7 +26,8 @@ export default async function ManagerOrdersPage({ params }: Props) {
   let session;
   try {
     session = await requireTenantRole(tenantSlug, ['super_admin', 'store_admin', 'manager']);
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

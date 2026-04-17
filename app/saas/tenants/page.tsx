@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
@@ -34,7 +35,8 @@ const PLAN_STYLES: Record<string, string> = {
 export default async function TenantsPage() {
   try {
     await requireSuperAdmin();
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

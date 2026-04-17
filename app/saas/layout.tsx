@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
@@ -14,7 +15,8 @@ export default async function SaasLayout({
   let session;
   try {
     session = await requireSuperAdmin();
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

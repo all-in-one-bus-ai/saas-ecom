@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { StatCard } from '@/components/shared/stat-card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Clock, CheckCircle, Package, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Clock, CircleCheck as CheckCircle, Package, ArrowRight } from 'lucide-react';
 import { updateOrderStatus } from '@/lib/actions/orders';
 import Link from 'next/link';
 
@@ -25,7 +26,8 @@ export default async function OperativeDashboard({ params }: Props) {
   let session;
   try {
     session = await requireTenantRole(tenantSlug, ['super_admin', 'store_admin', 'manager', 'operative']);
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

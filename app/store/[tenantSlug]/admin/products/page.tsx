@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Package, Plus, Edit, Trash2 } from 'lucide-react';
+import { Package, Plus, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 
 interface Props {
@@ -33,7 +34,8 @@ export default async function ProductsPage({ params }: Props) {
   let session;
   try {
     session = await requireTenantRole(tenantSlug, ['super_admin', 'store_admin']);
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

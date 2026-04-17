@@ -1,9 +1,9 @@
-import { Building2, Users, CreditCard, TrendingUp, Activity, Package, ShoppingCart, DollarSign } from 'lucide-react';
+import { Building2, Users, Activity, DollarSign } from 'lucide-react';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { StatCard } from '@/components/shared/stat-card';
-import { Badge } from '@/components/ui/badge';
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 
 export const metadata = { title: 'Super Admin Dashboard' };
 
@@ -46,7 +46,8 @@ const PLAN_COLORS: Record<string, string> = {
 export default async function SaasPage() {
   try {
     await requireSuperAdmin();
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { StatCard } from '@/components/shared/stat-card';
-import { DollarSign, ShoppingCart, Users, TrendingUp, Package, BarChart3 } from 'lucide-react';
+import { DollarSign, ShoppingCart, Users, TrendingUp, Package, ChartBar as BarChart3 } from 'lucide-react';
 
 interface Props {
   params: { tenantSlug: string };
@@ -14,7 +15,8 @@ export default async function AnalyticsPage({ params }: Props) {
   let session;
   try {
     session = await requireTenantRole(tenantSlug, ['super_admin', 'store_admin', 'manager']);
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 

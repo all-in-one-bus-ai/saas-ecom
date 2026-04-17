@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 import { getTenantSession } from '@/lib/auth/get-session';
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
@@ -26,7 +27,8 @@ export default async function OperativeLayout({ children, params }: Props) {
     if (!session || !['super_admin', 'store_admin', 'manager', 'operative'].includes(session.role)) {
       redirect('/login');
     }
-  } catch {
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
     redirect('/login');
   }
 
