@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 import type { Database } from '@/lib/types/database';
 
-export const getSupabaseServerClient = cache(() => {
+export function getSupabaseServerClient() {
   const cookieStore = cookies();
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,7 +25,7 @@ export const getSupabaseServerClient = cache(() => {
       },
     }
   );
-});
+}
 
 export const getSupabasePublicClient = cache(() => {
   return createClient<Database>(
