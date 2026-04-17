@@ -3,12 +3,50 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
+  Settings,
+  BarChart3,
+  Activity,
+  Package,
+  ShoppingCart,
+  Palette,
+  UserPlus,
+  Tag,
+  Truck,
+  UserCog,
+  Layers,
+  Warehouse,
+  type LucideIcon,
+} from 'lucide-react';
+
+// Icon map to resolve string names to components
+const iconMap: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Building2,
+  Users,
+  CreditCard,
+  Settings,
+  BarChart3,
+  Activity,
+  Package,
+  ShoppingCart,
+  Palette,
+  UserPlus,
+  Tag,
+  Truck,
+  UserCog,
+  Layers,
+  Warehouse,
+};
 
 export interface NavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: string; // Changed from LucideIcon to string
   badge?: string | number;
   permission?: string;
 }
@@ -44,7 +82,7 @@ export function DashboardSidebar({ logo, navGroups, footer }: DashboardSidebarPr
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                const Icon = item.icon;
+                const Icon = iconMap[item.icon] || LayoutDashboard;
                 return (
                   <li key={item.href}>
                     <Link

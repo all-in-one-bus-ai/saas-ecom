@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/get-session';
 import { DashboardSidebar } from '@/components/layout/dashboard-sidebar';
 import { DashboardHeader } from '@/components/layout/dashboard-header';
-import { LayoutDashboard, Building2, Users, CreditCard, Settings, ChartBar as BarChart3, ShoppingBag, Activity } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,28 +22,28 @@ export default async function SaasLayout({
   const navGroups = [
     {
       items: [
-        { label: 'Dashboard', href: '/saas', icon: LayoutDashboard },
+        { label: 'Dashboard', href: '/saas', icon: 'LayoutDashboard' },
       ],
     },
     {
       title: 'Platform',
       items: [
-        { label: 'Tenants', href: '/saas/tenants', icon: Building2 },
-        { label: 'Users', href: '/saas/users', icon: Users },
-        { label: 'Subscriptions', href: '/saas/subscriptions', icon: CreditCard },
+        { label: 'Tenants', href: '/saas/tenants', icon: 'Building2' },
+        { label: 'Users', href: '/saas/users', icon: 'Users' },
+        { label: 'Subscriptions', href: '/saas/subscriptions', icon: 'CreditCard' },
       ],
     },
     {
       title: 'Analytics',
       items: [
-        { label: 'Analytics', href: '/saas/analytics', icon: BarChart3 },
-        { label: 'Activity', href: '/saas/activity', icon: Activity },
+        { label: 'Analytics', href: '/saas/analytics', icon: 'BarChart3' },
+        { label: 'Activity', href: '/saas/activity', icon: 'Activity' },
       ],
     },
     {
       title: 'System',
       items: [
-        { label: 'Settings', href: '/saas/settings', icon: Settings },
+        { label: 'Settings', href: '/saas/settings', icon: 'Settings' },
       ],
     },
   ];
