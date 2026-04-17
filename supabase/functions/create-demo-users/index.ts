@@ -66,7 +66,6 @@ Deno.serve(async (req: Request) => {
           email: u.email,
           password: u.password,
           email_confirm: true,
-          user_metadata: { full_name: u.fullName },
         });
         results.push({ email: u.email, action: "created", error: createErr?.message });
       }
