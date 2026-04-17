@@ -33,6 +33,7 @@ Build a SaaS ecommerce project using the `all-in-one-bus-ai/saas-ecom` GitHub pr
 
 ## What's been implemented (dates)
 - 2026-01-21: Initial setup — cloned repo to /app/frontend, configured Supabase credentials, created backend health stub, updated supervisor to run Next.js via `yarn start → next dev`. All routes returning HTTP 200. Landing and storefront verified via screenshots. All 4 demo accounts successfully authenticate via Supabase.
+- 2026-01-21: Super Admin panel completed — built 7 missing pages (/saas/tenants/new, /saas/tenants/[id], /saas/users, /saas/users/new, /saas/subscriptions, /saas/analytics, /saas/activity, /saas/settings) with full CRUD, role management (grant/revoke super admin, delete user), MRR/ARR stats derived from plans, daily revenue bar chart, cross-tenant top performers, activity feed, persistent platform settings with integration status (Supabase/Service key/Stripe). Reserved Platform tenant (id=0000...0, slug=__platform__, status=suspended) auto-provisioned for settings storage and filtered from all listings. 100% test pass rate via testing agent.
 
 ## Known Items / Notes
 - **SUPABASE_SERVICE_ROLE_KEY mismatch**: The service role key provided belongs to a different Supabase project (`vvctaapqlynrbrlegeoa`) than the URL (`zfjyhmkomzoqpawbtpwt`). This does not affect client-side functionality (uses anon key) but any server-side service-role operations will fail. User should provide the correct service role key for project `zfjyhmkomzoqpawbtpwt` if server-role features are needed.
