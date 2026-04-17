@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -28,6 +29,12 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  const serviceSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
@@ -49,7 +56,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthRoute && user) {
-    const { data: profile } = await supabase
+    const { data: profile } = await serviceSupabase
       .from('user_profiles')
       .select('system_role')
       .eq('id', user.id)
@@ -59,7 +66,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/saas', request.url));
     }
 
-    const { data: memberships } = await supabase
+    const { data: memberships } = await serviceSupabase
       .from('tenant_memberships')
       .select('tenant_id, role, tenants!inner(slug)')
       .eq('user_id', user.id)
@@ -81,7 +88,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isSaasRoute && user) {
-    const { data: profile } = await supabase
+    const { data: profile } = await serviceSupabase
       .from('user_profiles')
       .select('system_role')
       .eq('id', user.id)
