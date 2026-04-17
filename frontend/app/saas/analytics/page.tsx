@@ -15,7 +15,7 @@ async function getAnalytics() {
 
   const [ordersRes, tenantsRes, productsRes, customersRes] = await Promise.all([
     admin.from('orders').select('id, tenant_id, total_amount, status, created_at'),
-    admin.from('tenants').select('id, name, slug, plan, status, created_at'),
+    admin.from('tenants').select('id, name, slug, plan, status, created_at').neq('id', '00000000-0000-0000-0000-000000000000'),
     admin.from('products').select('id', { count: 'exact', head: true }),
     admin.from('customers').select('id', { count: 'exact', head: true }),
   ]);

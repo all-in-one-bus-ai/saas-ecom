@@ -20,7 +20,7 @@ async function getActivity(): Promise<Event[]> {
 
   const [ordersRes, tenantsRes, productsRes, profilesRes] = await Promise.all([
     admin.from('orders').select('id, order_number, tenant_id, total_amount, status, created_at, tenants(name, slug)').order('created_at', { ascending: false }).limit(20),
-    admin.from('tenants').select('id, name, slug, plan, status, created_at').order('created_at', { ascending: false }).limit(20),
+    admin.from('tenants').select('id, name, slug, plan, status, created_at').neq('id', '00000000-0000-0000-0000-000000000000').order('created_at', { ascending: false }).limit(20),
     admin.from('products').select('id, name, tenant_id, created_at, tenants(name, slug)').order('created_at', { ascending: false }).limit(20),
     admin.from('user_profiles').select('id, full_name, created_at').order('created_at', { ascending: false }).limit(20),
   ]);

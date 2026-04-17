@@ -9,14 +9,15 @@ async function getSaasStats() {
     const supabase = getSupabaseServerClient();
 
     const [r1, r2, r3] = await Promise.all([
-      supabase.from('tenants').select('*', { count: 'exact', head: true }),
+      supabase.from('tenants').select('*', { count: 'exact', head: true }).neq('id', '00000000-0000-0000-0000-000000000000'),
       supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('tenants').select('id, name, slug, status, plan, created_at').order('created_at', { ascending: false }).limit(5),
+      supabase.from('tenants').select('id, name, slug, status, plan, created_at').neq('id', '00000000-0000-0000-0000-000000000000').order('created_at', { ascending: false }).limit(5),
     ]);
 
     const r4 = await supabase
       .from('tenants')
       .select('*', { count: 'exact', head: true })
+      .neq('id', '00000000-0000-0000-0000-000000000000')
       .eq('status', 'active');
 
     return {

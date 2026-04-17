@@ -5,7 +5,8 @@ import { getSupabaseServiceClient } from '@/lib/supabase/server';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 
 const PLATFORM_SETTING_KEY = '__platform_settings__';
-const PLATFORM_TENANT_PROBE = '00000000-0000-0000-0000-000000000000';
+const PLATFORM_TENANT_ID = '00000000-0000-0000-0000-000000000000';
+const PLATFORM_TENANT_SLUG = '__platform__';
 
 export type PlatformSettings = {
   platform_name: string;
@@ -23,11 +24,32 @@ const DEFAULTS: PlatformSettings = {
   allow_signups: true,
 };
 
+async function ensurePlatformTenant() {
+  const admin = getSupabaseServiceClient();
+  const { data: existing } = await admin
+    .from('tenants')
+    .select('id')
+    .eq('id', PLATFORM_TENANT_ID)
+    .maybeSingle();
+
+  if (!existing) {
+    await admin.from('tenants').insert({
+      id: PLATFORM_TENANT_ID,
+      slug: PLATFORM_TENANT_SLUG,
+      name: 'Platform',
+      description: 'Reserved record that stores platform-level settings. Hidden from tenant lists.',
+      status: 'suspended',
+      plan: 'enterprise',
+    });
+  }
+}
+
 export async function getPlatformSettings(): Promise<PlatformSettings> {
   const admin = getSupabaseServiceClient();
   const { data } = await admin
     .from('store_settings')
     .select('value')
+    .eq('tenant_id', PLATFORM_TENANT_ID)
     .eq('key', PLATFORM_SETTING_KEY)
     .maybeSingle();
 
@@ -44,6 +66,8 @@ export async function updatePlatformSettings(formData: FormData) {
   await requireSuperAdmin();
   const admin = getSupabaseServiceClient();
 
+  await ensurePlatformTenant();
+
   const next: PlatformSettings = {
     platform_name: String(formData.get('platform_name') ?? DEFAULTS.platform_name).slice(0, 100),
     support_email: String(formData.get('support_email') ?? ''),
@@ -52,12 +76,11 @@ export async function updatePlatformSettings(formData: FormData) {
     allow_signups: formData.get('allow_signups') === 'on',
   };
 
-  // Upsert a single platform-wide row. We reuse store_settings with a reserved tenant_id.
   const { error } = await admin
     .from('store_settings')
     .upsert(
       {
-        tenant_id: PLATFORM_TENANT_PROBE,
+        tenant_id: PLATFORM_TENANT_ID,
         key: PLATFORM_SETTING_KEY,
         value: JSON.stringify(next),
       },

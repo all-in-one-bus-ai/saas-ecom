@@ -35,7 +35,7 @@ async function getSubscriptionData() {
 
   const [subsRes, tenantsRes] = await Promise.all([
     admin.from('subscriptions').select('*').order('created_at', { ascending: false }),
-    admin.from('tenants').select('id, name, slug, plan, status, created_at'),
+    admin.from('tenants').select('id, name, slug, plan, status, created_at').neq('id', '00000000-0000-0000-0000-000000000000'),
   ]);
 
   const subs = subsRes.data ?? [];
