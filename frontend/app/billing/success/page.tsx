@@ -12,7 +12,7 @@ export default function BillingSuccessPage() {
   const sessionId = search.get('session_id');
   const router = useRouter();
   const [state, setState] = useState<'polling' | 'success' | 'failed' | 'pending'>('polling');
-  const [details, setDetails] = useState<{ amount?: number; tenantSlug?: string; plan?: string } | null>(null);
+  const [details, setDetails] = useState<{ amount?: number; tenantSlug?: string; plan?: string; currency?: string } | null>(null);
 
   useEffect(() => {
     if (!sessionId) {

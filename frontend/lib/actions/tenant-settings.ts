@@ -37,7 +37,7 @@ export async function updateTenantSettings(formData: FormData) {
   const currencyRaw = String(formData.get('currency') ?? '').toUpperCase();
   const currency = SUPPORTED_CURRENCIES.find((c) => c.code === currencyRaw)?.code;
 
-  const tenantUpdate: Record<string, any> = {};
+  const tenantUpdate: { name?: string; description?: string } = {};
   if (name && name.length >= 2 && name.length <= 100) tenantUpdate.name = name;
   if (description.length <= 500) tenantUpdate.description = description;
 
