@@ -17,6 +17,7 @@ subscriptions, and inserts an orders + order_items row for shopper checkouts.
 """
 
 import os
+import re
 import logging
 from typing import List, Optional, Literal
 from datetime import datetime, timezone
@@ -50,6 +51,8 @@ PLAN_PRICES = {
     "professional": 99.00,
     "enterprise": 299.00,
 }
+
+UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 
 mongo = AsyncIOMotorClient(MONGO_URL)
 db = mongo[DB_NAME]
@@ -167,6 +170,9 @@ async def root():
 async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request):
     if body.plan not in PLAN_PRICES:
         raise HTTPException(400, "Invalid plan")
+
+    if not UUID_RE.match(body.tenant_id):
+        raise HTTPException(400, "Invalid tenant_id")
 
     # Verify tenant exists
     rows = await sb_get("tenants", params={"id": f"eq.{body.tenant_id}", "select": "id,name,slug"})
