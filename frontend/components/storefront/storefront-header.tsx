@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingCart, Search, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import type { Category } from '@/lib/types/database';
+import { CartIcon } from './cart-icon';
 
 interface Props {
   tenantSlug: string;
@@ -64,13 +65,7 @@ export function StorefrontHeader({ tenantSlug, storeName, categories }: Props) {
               <Search size={18} />
             </button>
 
-            <Link
-              href={`/${tenantSlug}/cart`}
-              className="p-2 rounded-lg transition-colors relative"
-              style={{ color: 'var(--color-muted-foreground)' }}
-            >
-              <ShoppingCart size={18} />
-            </Link>
+            <CartIcon tenantSlug={tenantSlug} />
 
             <button
               className="md:hidden p-2 rounded-lg"

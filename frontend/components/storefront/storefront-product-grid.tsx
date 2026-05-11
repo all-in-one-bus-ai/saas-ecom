@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
-import { ShoppingCart, Package, Star } from 'lucide-react';
+import { Package } from 'lucide-react';
+import { AddToCartButton } from './add-to-cart-button';
 import type { ProductImage } from '@/lib/types/database';
 
 interface ProductWithVariants {
@@ -31,46 +34,49 @@ function ProductCard({ product, tenantSlug }: { product: ProductWithVariants; te
     : 0;
 
   return (
-    <Link
-      href={`/${tenantSlug}/products/${product.slug}`}
+    <div
       className="group block rounded-xl overflow-hidden border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
       style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card)' }}
+      data-testid={`product-card-${product.id}`}
     >
-      <div className="relative overflow-hidden aspect-square bg-muted/30">
-        {image?.url ? (
-          <img
-            src={image.url}
-            alt={image.alt || product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package size={40} className="text-muted-foreground/30" />
-          </div>
-        )}
+      <Link href={`/${tenantSlug}/products/${product.slug}`} className="block">
+        <div className="relative overflow-hidden aspect-square bg-muted/30">
+          {image?.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image.url}
+              alt={image.alt || product.name}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Package size={40} className="text-muted-foreground/30" />
+            </div>
+          )}
 
-        {hasDiscount && (
-          <div
-            className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-xs font-bold"
-            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }}
-          >
-            -{discountPct}%
-          </div>
-        )}
+          {hasDiscount && (
+            <div
+              className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-xs font-bold"
+              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-foreground)' }}
+            >
+              -{discountPct}%
+            </div>
+          )}
 
-        {product.is_featured && (
-          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-white">
-            Featured
-          </div>
-        )}
+          {product.is_featured && (
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-white">
+              Featured
+            </div>
+          )}
 
-        {isOutOfStock && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="text-sm font-semibold text-muted-foreground">Out of Stock</span>
-          </div>
-        )}
-      </div>
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+              <span className="text-sm font-semibold text-muted-foreground">Out of Stock</span>
+            </div>
+          )}
+        </div>
+      </Link>
 
       <div className="p-4">
         {product.categories && (
@@ -81,35 +87,37 @@ function ProductCard({ product, tenantSlug }: { product: ProductWithVariants; te
             {product.categories.name}
           </p>
         )}
-        <h3
-          className="font-semibold text-sm leading-tight mb-2 line-clamp-2 transition-colors group-hover:opacity-80"
-          style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-card-foreground)' }}
-        >
-          {product.name}
-        </h3>
-        <div className="flex items-center gap-2">
-          <span className="font-bold" style={{ color: 'var(--color-foreground)' }}>
-            ${product.price.toFixed(2)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm line-through" style={{ color: 'var(--color-muted-foreground)' }}>
-              ${product.compare_at_price!.toFixed(2)}
+        <Link href={`/${tenantSlug}/products/${product.slug}`}>
+          <h3
+            className="font-semibold text-sm leading-tight mb-2 line-clamp-2 transition-colors hover:opacity-80"
+            style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-card-foreground)' }}
+          >
+            {product.name}
+          </h3>
+        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-bold" style={{ color: 'var(--color-foreground)' }}>
+              ${product.price.toFixed(2)}
             </span>
+            {hasDiscount && (
+              <span className="text-sm line-through" style={{ color: 'var(--color-muted-foreground)' }}>
+                ${product.compare_at_price!.toFixed(2)}
+              </span>
+            )}
+          </div>
+          {!isOutOfStock && (
+            <AddToCartButton
+              tenantSlug={tenantSlug}
+              productId={product.id}
+              name={product.name}
+              price={product.price}
+              image={image?.url}
+            />
           )}
         </div>
-        {!isOutOfStock && (
-          <button
-            className="mt-3 w-full py-2 px-4 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0"
-            style={{
-              backgroundColor: 'var(--color-primary)',
-              color: 'var(--color-primary-foreground)',
-            }}
-          >
-            <ShoppingCart size={13} /> Add to Cart
-          </button>
-        )}
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -143,23 +151,12 @@ export function StorefrontProductGrid({ products, tenantSlug }: Props) {
       </div>
 
       <div
-        className="grid gap-5"
-        style={{
-          gridTemplateColumns: 'repeat(var(--grid-cols, 3), minmax(0, 1fr))',
-        }}
+        className="grid gap-5 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+        data-testid="product-grid"
       >
-        <style>{`
-          @media (max-width: 640px) { .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
-          @media (min-width: 641px) and (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
-        `}</style>
-        <div
-          className="product-grid grid gap-5 col-span-full"
-          style={{ gridTemplateColumns: `repeat(${Math.min(products.length, 4)}, minmax(0, 1fr))` }}
-        >
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} tenantSlug={tenantSlug} />
-          ))}
-        </div>
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} tenantSlug={tenantSlug} />
+        ))}
       </div>
     </section>
   );
