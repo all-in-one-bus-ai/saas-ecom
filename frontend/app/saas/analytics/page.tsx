@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { getSupabaseServiceClient } from '@/lib/supabase/server';
+import { resolvePlatformCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { StatCard } from '@/components/shared/stat-card';
 import { BarChart3, DollarSign, ShoppingCart, Building2, TrendingUp } from 'lucide-react';
 
@@ -87,7 +89,7 @@ export default async function AnalyticsPage() {
     redirect('/login');
   }
 
-  const a = await getAnalytics();
+  const [a, currency] = await Promise.all([getAnalytics(), resolvePlatformCurrency()]);
 
   return (
     <div className="animate-in" data-testid="saas-analytics-page">
@@ -101,8 +103,8 @@ export default async function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="GMV (all time)" value={`$${a.gmv.toFixed(2)}`} icon={DollarSign} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
-        <StatCard title="GMV (30 days)" value={`$${a.last30Gmv.toFixed(2)}`} icon={TrendingUp} iconColor="text-sky-600" iconBg="bg-sky-50" />
+        <StatCard title="GMV (all time)" value={formatPrice(a.gmv, currency)} icon={DollarSign} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
+        <StatCard title="GMV (30 days)" value={formatPrice(a.last30Gmv, currency)} icon={TrendingUp} iconColor="text-sky-600" iconBg="bg-sky-50" />
         <StatCard title="Total orders" value={a.orderCount} icon={ShoppingCart} iconColor="text-blue-600" iconBg="bg-blue-50" />
         <StatCard title="Tenants" value={a.tenantCount} icon={Building2} iconColor="text-amber-600" iconBg="bg-amber-50" />
       </div>
@@ -122,7 +124,7 @@ export default async function AnalyticsPage() {
               <div
                 key={d.date}
                 className="flex-1 group relative flex flex-col items-center justify-end"
-                title={`${d.date}: $${d.revenue.toFixed(2)} · ${d.orders} orders`}
+                title={`${d.date}: ${formatPrice(d.revenue, currency)} · ${d.orders} orders`}
               >
                 <div
                   className="w-full bg-sky-500/80 hover:bg-sky-500 rounded-t transition-all"
@@ -156,7 +158,7 @@ export default async function AnalyticsPage() {
                     <p className="text-xs text-muted-foreground">/{t.slug} · {t.orders} orders</p>
                   </div>
                 </div>
-                <p className="text-sm font-semibold tabular-nums">${t.revenue.toFixed(2)}</p>
+                <p className="text-sm font-semibold tabular-nums">{formatPrice(t.revenue, currency)}</p>
               </div>
             ))}
           </div>

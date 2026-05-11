@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { Users } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 
@@ -26,6 +28,7 @@ export default async function CustomersPage({ params }: Props) {
     .select('*')
     .eq('tenant_id', session.tenant.id)
     .order('created_at', { ascending: false });
+  const currency = await resolveTenantCurrency(session.tenant.id);
 
   return (
     <div className="animate-in">
@@ -63,7 +66,7 @@ export default async function CustomersPage({ params }: Props) {
                   </td>
                   <td className="px-5 py-3.5 text-muted-foreground">{c.phone || '—'}</td>
                   <td className="px-5 py-3.5 text-foreground font-medium">{c.total_orders}</td>
-                  <td className="px-5 py-3.5 font-semibold text-foreground">${c.total_spent.toFixed(2)}</td>
+                  <td className="px-5 py-3.5 font-semibold text-foreground">{formatPrice(c.total_spent, currency)}</td>
                   <td className="px-5 py-3.5 text-xs text-muted-foreground">
                     {new Date(c.created_at).toLocaleDateString()}
                   </td>

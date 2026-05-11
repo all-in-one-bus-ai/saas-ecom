@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { StatCard } from '@/components/shared/stat-card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Clock, CircleCheck as CheckCircle, Package, ArrowRight } from 'lucide-react';
@@ -56,6 +58,8 @@ export default async function OperativeDashboard({ params }: Props) {
     .order('stock_qty', { ascending: true })
     .limit(5);
 
+  const currency = await resolveTenantCurrency(tenantId);
+
   return (
     <div className="animate-in">
       <div className="page-header">
@@ -100,7 +104,7 @@ export default async function OperativeDashboard({ params }: Props) {
                           <span className={ORDER_STATUS_BADGE[order.status] ?? ''}>{order.status}</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {customer?.full_name ?? customer?.email ?? 'Guest'} — ${order.total_amount.toFixed(2)}
+                          {customer?.full_name ?? customer?.email ?? 'Guest'} — {formatPrice(order.total_amount, currency)}
                         </p>
                       </div>
                       <div className="flex gap-1.5 shrink-0">

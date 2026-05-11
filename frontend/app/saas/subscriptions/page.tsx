@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { getSupabaseServiceClient } from '@/lib/supabase/server';
+import { resolvePlatformCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { StatCard } from '@/components/shared/stat-card';
 import { DollarSign, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
 
@@ -69,6 +71,7 @@ export default async function SubscriptionsPage() {
   }
 
   const { rows, totalMRR, arr, paidCount, pastDue } = await getSubscriptionData();
+  const currency = await resolvePlatformCurrency();
 
   return (
     <div className="animate-in" data-testid="saas-subscriptions-page">
@@ -82,8 +85,8 @@ export default async function SubscriptionsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="MRR" value={`$${totalMRR.toLocaleString()}`} icon={DollarSign} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
-        <StatCard title="ARR" value={`$${arr.toLocaleString()}`} icon={TrendingUp} iconColor="text-sky-600" iconBg="bg-sky-50" />
+        <StatCard title="MRR" value={formatPrice(totalMRR, currency)} icon={DollarSign} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
+        <StatCard title="ARR" value={formatPrice(arr, currency)} icon={TrendingUp} iconColor="text-sky-600" iconBg="bg-sky-50" />
         <StatCard title="Paying tenants" value={paidCount} icon={CreditCard} iconColor="text-blue-600" iconBg="bg-blue-50" />
         <StatCard
           title="Past due"
@@ -124,7 +127,7 @@ export default async function SubscriptionsPage() {
                   </span>
                 </td>
                 <td className="px-5 py-3.5 text-right font-medium">
-                  {r.mrr > 0 ? `$${r.mrr}/mo` : '—'}
+                  {r.mrr > 0 ? `${formatPrice(r.mrr, currency)}/mo` : '—'}
                 </td>
                 <td className="px-5 py-3.5 text-xs text-muted-foreground font-mono">
                   {r.subscription?.stripe_customer_id ?? '—'}

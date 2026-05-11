@@ -52,6 +52,10 @@ PLAN_PRICES = {
     "enterprise": 299.00,
 }
 
+DEFAULT_CURRENCY = "GBP"
+PLATFORM_TENANT_ID = "00000000-0000-0000-0000-000000000000"
+PLATFORM_SETTING_KEY = "__platform_settings__"
+
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 
 mongo = AsyncIOMotorClient(MONGO_URL)
@@ -143,6 +147,44 @@ async def resolve_stripe_key(tenant_id: Optional[str]) -> str:
     return STRIPE_API_KEY
 
 
+async def get_platform_currency() -> str:
+    try:
+        rows = await sb_get(
+            "store_settings",
+            params={
+                "tenant_id": f"eq.{PLATFORM_TENANT_ID}",
+                "key": f"eq.{PLATFORM_SETTING_KEY}",
+                "select": "value",
+            },
+        )
+        if rows and rows[0].get("value"):
+            import json
+            try:
+                cfg = json.loads(rows[0]["value"])
+                cur = (cfg.get("default_currency") or "").upper()
+                if cur:
+                    return cur
+            except Exception:
+                pass
+    except Exception as e:
+        log.warning("Failed to read platform currency: %s", e)
+    return DEFAULT_CURRENCY
+
+
+async def resolve_tenant_currency(tenant_id: str) -> str:
+    """Tenant `currency` row in store_settings, else platform default, else DEFAULT_CURRENCY."""
+    try:
+        rows = await sb_get(
+            "store_settings",
+            params={"tenant_id": f"eq.{tenant_id}", "key": "eq.currency", "select": "value"},
+        )
+        if rows and rows[0].get("value"):
+            return rows[0]["value"].upper()
+    except Exception as e:
+        log.warning("Failed to read tenant currency: %s", e)
+    return await get_platform_currency()
+
+
 def make_checkout(api_key: str, host_url: str) -> StripeCheckout:
     webhook_url = f"{host_url.rstrip('/')}/api/webhook/stripe"
     return StripeCheckout(api_key=api_key, webhook_url=webhook_url)
@@ -165,6 +207,21 @@ async def root():
     ]}
 
 
+# ----- Tenant currency (public, for cart UI) ---------------------------
+@app.get("/api/payments/tenant-currency/{tenant_slug}")
+async def tenant_currency(tenant_slug: str):
+    try:
+        rows = await sb_get(
+            "tenants",
+            params={"slug": f"eq.{tenant_slug}", "select": "id"},
+        )
+        if not rows:
+            return {"currency": await get_platform_currency()}
+        return {"currency": await resolve_tenant_currency(rows[0]["id"])}
+    except Exception:
+        return {"currency": await get_platform_currency()}
+
+
 # ----- Tenant subscription checkout ------------------------------------
 @app.post("/api/payments/subscription/checkout")
 async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request):
@@ -181,6 +238,7 @@ async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request
     tenant = rows[0]
 
     amount = float(PLAN_PRICES[body.plan])
+    currency = (await get_platform_currency()).lower()
 
     # ALWAYS use platform key for tenant subscriptions (revenue goes to platform)
     host_url = str(request.base_url)
@@ -195,11 +253,12 @@ async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request
         "tenant_id": tenant["id"],
         "tenant_slug": tenant["slug"],
         "plan": body.plan,
+        "currency": currency,
     }
 
     req = CheckoutSessionRequest(
         amount=amount,
-        currency="usd",
+        currency=currency,
         success_url=success_url,
         cancel_url=cancel_url,
         metadata=metadata,
@@ -212,7 +271,7 @@ async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request
         "tenant_id": tenant["id"],
         "tenant_slug": tenant["slug"],
         "amount": amount,
-        "currency": "usd",
+        "currency": currency,
         "metadata": metadata,
         "payment_status": "initiated",
         "status": "open",
@@ -221,7 +280,7 @@ async def subscription_checkout(body: SubscriptionCheckoutBody, request: Request
         "updated_at": datetime.now(timezone.utc),
     })
 
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.session_id, "currency": currency}
 
 
 # ----- Shopper checkout -------------------------------------------------
@@ -274,6 +333,7 @@ async def shop_checkout(body: ShopCheckoutBody, request: Request):
         raise HTTPException(400, "Invalid cart total")
 
     amount = round(subtotal, 2)
+    currency = (await resolve_tenant_currency(tenant["id"])).lower()
 
     # Use per-tenant key if configured, else platform key
     api_key = await resolve_stripe_key(tenant["id"])
@@ -289,11 +349,12 @@ async def shop_checkout(body: ShopCheckoutBody, request: Request):
         "tenant_id": tenant["id"],
         "tenant_slug": tenant["slug"],
         "customer_email": body.customer_email,
+        "currency": currency,
     }
 
     req = CheckoutSessionRequest(
         amount=amount,
-        currency="usd",
+        currency=currency,
         success_url=success_url,
         cancel_url=cancel_url,
         metadata=metadata,
@@ -306,7 +367,7 @@ async def shop_checkout(body: ShopCheckoutBody, request: Request):
         "tenant_id": tenant["id"],
         "tenant_slug": tenant["slug"],
         "amount": amount,
-        "currency": "usd",
+        "currency": currency,
         "customer_email": body.customer_email,
         "line_items": line_items_meta,
         "metadata": metadata,
@@ -317,7 +378,7 @@ async def shop_checkout(body: ShopCheckoutBody, request: Request):
         "updated_at": datetime.now(timezone.utc),
     })
 
-    return {"url": session.url, "session_id": session.session_id}
+    return {"url": session.url, "session_id": session.session_id, "currency": currency}
 
 
 # ----- Status (polled by frontend success page) ------------------------
@@ -430,7 +491,7 @@ async def _credit_transaction(session_id: str):
                     "payment_status": "paid",
                     "subtotal": amount,
                     "total_amount": amount,
-                    "currency": "USD",
+                    "currency": (res.get("currency") or "USD").upper(),
                     "notes": f"Stripe session {session_id} · {email}",
                     "stripe_payment_intent_id": session_id,
                 }],

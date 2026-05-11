@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '@/lib/cart/use-cart';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Trash2, Minus, Plus, Package, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatPrice, DEFAULT_CURRENCY } from '@/lib/currency';
 
 export default function CartPage() {
   const params = useParams<{ tenantSlug: string }>();
@@ -16,7 +17,14 @@ export default function CartPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [currency, setCurrency] = useState<string>(DEFAULT_CURRENCY);
+
+  useEffect(() => {
+    fetch(`/api/payments/tenant-currency/${tenantSlug}`)
+      .then((r) => r.json())
+      .then((d) => d?.currency && setCurrency(d.currency))
+      .catch(() => {});
+  }, [tenantSlug]);
 
   async function checkout() {
     setError(null);
@@ -101,7 +109,7 @@ export default function CartPage() {
                     {item.name}
                   </p>
                   <p className="text-sm" style={{ color: 'var(--color-muted-foreground)' }}>
-                    ${item.price.toFixed(2)} each
+                    {formatPrice(item.price, currency)} each
                   </p>
                 </div>
                 <div className="flex items-center gap-1 rounded-md border" style={{ borderColor: 'var(--color-border)' }}>
@@ -123,8 +131,8 @@ export default function CartPage() {
                     <Plus size={12} />
                   </button>
                 </div>
-                <p className="font-semibold text-sm tabular-nums w-20 text-right">
-                  ${(item.price * item.quantity).toFixed(2)}
+                <p className="font-semibold text-sm tabular-nums w-24 text-right">
+                  {formatPrice(item.price * item.quantity, currency)}
                 </p>
                 <button
                   onClick={() => remove(item.product_id)}
@@ -150,7 +158,7 @@ export default function CartPage() {
             <div className="space-y-2 text-sm mb-5">
               <div className="flex justify-between">
                 <span style={{ color: 'var(--color-muted-foreground)' }}>Subtotal</span>
-                <span className="tabular-nums">${total.toFixed(2)}</span>
+                <span className="tabular-nums">{formatPrice(total, currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: 'var(--color-muted-foreground)' }}>Shipping</span>
@@ -162,7 +170,7 @@ export default function CartPage() {
               >
                 <span>Total</span>
                 <span className="tabular-nums" data-testid="cart-total">
-                  ${total.toFixed(2)}
+                  {formatPrice(total, currency)}
                 </span>
               </div>
             </div>
@@ -194,7 +202,7 @@ export default function CartPage() {
               className="w-full bg-sky-600 hover:bg-sky-500 text-white"
               data-testid="checkout-button"
             >
-              {loading ? 'Redirecting…' : `Checkout · $${total.toFixed(2)}`}
+              {loading ? 'Redirecting…' : `Checkout · ${formatPrice(total, currency)}`}
             </Button>
             <p className="text-[11px] text-center mt-3" style={{ color: 'var(--color-muted-foreground)' }}>
               Secure payment by Stripe

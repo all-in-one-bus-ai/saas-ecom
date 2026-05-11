@@ -3,6 +3,8 @@ import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { StatCard } from '@/components/shared/stat-card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Package, Users, DollarSign, Plus, ArrowRight, TrendingUp, Clock, CircleCheck as CheckCircle, Truck } from 'lucide-react';
@@ -75,6 +77,7 @@ export default async function StoreAdminDashboard({ params }: Props) {
   }
 
   const stats = await getStoreStats(session.tenant.id);
+  const currency = await resolveTenantCurrency(session.tenant.id);
 
   return (
     <div className="animate-in">
@@ -95,7 +98,7 @@ export default async function StoreAdminDashboard({ params }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           title="Total Revenue"
-          value={`$${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
+          value={formatPrice(stats.totalRevenue, currency)}
           icon={DollarSign}
           iconColor="text-emerald-600"
           iconBg="bg-emerald-50"
@@ -160,7 +163,7 @@ export default async function StoreAdminDashboard({ params }: Props) {
                         {order.status}
                       </span>
                       <span className="text-sm font-semibold text-foreground">
-                        ${(order.total_amount ?? 0).toFixed(2)}
+                        {formatPrice(order.total_amount ?? 0, currency)}
                       </span>
                     </div>
                   </div>

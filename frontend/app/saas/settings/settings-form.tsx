@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Save, CheckCircle2 } from 'lucide-react';
 import { updatePlatformSettings, type PlatformSettings } from '@/lib/actions/platform-settings';
+import { SUPPORTED_CURRENCIES } from '@/lib/currency';
 
 export function PlatformSettingsForm({ initial }: { initial: PlatformSettings }) {
   const [isPending, startTransition] = useTransition();
@@ -73,6 +74,27 @@ export function PlatformSettingsForm({ initial }: { initial: PlatformSettings })
           <option value="professional">Professional</option>
           <option value="enterprise">Enterprise</option>
         </select>
+      </div>
+
+      <div>
+        <Label htmlFor="default_currency">Default currency</Label>
+        <select
+          id="default_currency"
+          name="default_currency"
+          defaultValue={initial.default_currency}
+          className="mt-1.5 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          data-testid="setting-default-currency"
+        >
+          {SUPPORTED_CURRENCIES.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.code} · {c.symbol} · {c.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-muted-foreground mt-1">
+          Applies to subscription billing, the landing-page Pricing section, and tenants that
+          haven&apos;t set their own currency.
+        </p>
       </div>
 
       <div className="border-t pt-5 space-y-4">

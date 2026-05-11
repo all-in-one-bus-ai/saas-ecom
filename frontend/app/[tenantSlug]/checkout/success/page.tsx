@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart/use-cart';
+import { formatPrice } from '@/lib/currency';
 import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -69,7 +70,7 @@ export default function CheckoutSuccessPage() {
           <p className="text-muted-foreground text-sm mb-6">
             We&apos;ve received your payment of{' '}
             <strong>
-              ${details?.amount?.toFixed(2)} {details?.currency?.toUpperCase()}
+              {formatPrice(details?.amount ?? 0, (details?.currency ?? 'USD').toUpperCase())}
             </strong>
             . You&apos;ll get a confirmation email shortly.
           </p>

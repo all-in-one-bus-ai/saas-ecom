@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { AddToCartButton } from './add-to-cart-button';
+import { formatPrice, DEFAULT_CURRENCY } from '@/lib/currency';
 import type { ProductImage } from '@/lib/types/database';
 
 interface ProductWithVariants {
@@ -20,9 +21,10 @@ interface ProductWithVariants {
 interface Props {
   products: ProductWithVariants[];
   tenantSlug: string;
+  currency?: string;
 }
 
-function ProductCard({ product, tenantSlug }: { product: ProductWithVariants; tenantSlug: string }) {
+function ProductCard({ product, tenantSlug, currency }: { product: ProductWithVariants; tenantSlug: string; currency: string }) {
   const images = product.images as ProductImage[] | null;
   const image = images?.[0];
   const variants = product.product_variants ?? [];
@@ -98,11 +100,11 @@ function ProductCard({ product, tenantSlug }: { product: ProductWithVariants; te
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: 'var(--color-foreground)' }}>
-              ${product.price.toFixed(2)}
+              {formatPrice(product.price, currency)}
             </span>
             {hasDiscount && (
               <span className="text-sm line-through" style={{ color: 'var(--color-muted-foreground)' }}>
-                ${product.compare_at_price!.toFixed(2)}
+                {formatPrice(product.compare_at_price!, currency)}
               </span>
             )}
           </div>
@@ -121,7 +123,7 @@ function ProductCard({ product, tenantSlug }: { product: ProductWithVariants; te
   );
 }
 
-export function StorefrontProductGrid({ products, tenantSlug }: Props) {
+export function StorefrontProductGrid({ products, tenantSlug, currency = DEFAULT_CURRENCY }: Props) {
   if (products.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -155,7 +157,7 @@ export function StorefrontProductGrid({ products, tenantSlug }: Props) {
         data-testid="product-grid"
       >
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} tenantSlug={tenantSlug} />
+          <ProductCard key={product.id} product={product} tenantSlug={tenantSlug} currency={currency} />
         ))}
       </div>
     </section>

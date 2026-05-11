@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatPrice, DEFAULT_CURRENCY } from '@/lib/currency';
 
 const PLANS = [
   {
@@ -60,7 +61,7 @@ const PLANS = [
   },
 ];
 
-export function PricingSection() {
+export function PricingSection({ currency = DEFAULT_CURRENCY }: { currency?: string }) {
   const [annual, setAnnual] = useState(false);
 
   return (
@@ -117,11 +118,11 @@ export function PricingSection() {
               <p className="text-xs text-slate-400 min-h-[36px] mb-5">{p.description}</p>
 
               <div className="mb-6">
-                <span className="text-4xl font-bold tracking-tight">${monthly}</span>
+                <span className="text-4xl font-bold tracking-tight">{formatPrice(monthly, currency)}</span>
                 <span className="text-sm text-slate-400 ml-1">/mo</span>
                 {annual && p.price > 0 && (
                   <p className="text-[11px] text-emerald-400 mt-1">
-                    billed annually · ${monthly * 12}/yr
+                    billed annually · {formatPrice(monthly * 12, currency)}/yr
                   </p>
                 )}
               </div>
@@ -154,7 +155,7 @@ export function PricingSection() {
       </div>
 
       <p className="text-center text-xs text-slate-500 mt-8">
-        All prices in USD. Cancel anytime. Stores already on the platform? Manage your plan from your
+        All prices shown in {currency}. Cancel anytime. Stores already on the platform? Manage your plan from your
         store admin → Billing.
       </p>
     </section>

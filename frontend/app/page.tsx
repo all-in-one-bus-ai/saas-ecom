@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { ShoppingBag, ArrowRight, Building2, Users, Palette, Shield, BarChart3, Zap } from 'lucide-react';
 import { PricingSection } from '@/components/landing/pricing-section';
+import { resolvePlatformCurrency } from '@/lib/currency-server';
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const currency = await resolvePlatformCurrency();
   const features = [
     {
       icon: Building2,
@@ -121,7 +123,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <PricingSection />
+      <PricingSection currency={currency} />
 
       <section className="border-t border-slate-800 bg-slate-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">

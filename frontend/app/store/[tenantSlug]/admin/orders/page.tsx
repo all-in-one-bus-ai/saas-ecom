@@ -3,6 +3,8 @@ import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, ArrowRight } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -58,6 +60,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   }
 
   const { data: orders } = await query;
+  const currency = await resolveTenantCurrency(session.tenant.id);
 
   return (
     <div className="animate-in">
@@ -120,7 +123,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
                       </div>
                     </td>
                     <td className="px-5 py-3.5 text-muted-foreground">{(items ?? []).length} item(s)</td>
-                    <td className="px-5 py-3.5 font-semibold text-foreground">${order.total_amount.toFixed(2)}</td>
+                    <td className="px-5 py-3.5 font-semibold text-foreground">{formatPrice(order.total_amount, order.currency || currency)}</td>
                     <td className="px-5 py-3.5">
                       <span className={ORDER_STATUS_BADGE[order.status] ?? ''}>
                         {order.status}

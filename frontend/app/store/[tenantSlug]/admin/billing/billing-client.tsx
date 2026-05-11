@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { saveTenantStripeKeys } from '@/lib/actions/tenant-billing';
+import { formatPrice, DEFAULT_CURRENCY } from '@/lib/currency';
 
 const PLANS = [
   { plan: 'free', name: 'Free', price: 0, features: ['1 storefront', '25 products', 'Basic analytics'] },
@@ -36,6 +37,7 @@ interface Props {
     status: string;
     created_at: string;
   }>;
+  platformCurrency?: string;
 }
 
 export function BillingClient({
@@ -46,6 +48,7 @@ export function BillingClient({
   hasOwnStripe,
   publishableKey,
   recentOrders,
+  platformCurrency = DEFAULT_CURRENCY,
 }: Props) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -143,7 +146,7 @@ export function BillingClient({
                 )}
               </div>
               <div className="mb-3">
-                <span className="text-2xl font-bold tracking-tight">${p.price}</span>
+                <span className="text-2xl font-bold tracking-tight">{formatPrice(p.price, platformCurrency)}</span>
                 <span className="text-xs text-muted-foreground ml-1">/mo</span>
               </div>
               <ul className="space-y-1.5 mb-5 flex-1">
@@ -267,7 +270,7 @@ export function BillingClient({
                     {new Date(o.created_at).toLocaleDateString()} · {o.status}
                   </p>
                 </div>
-                <p className="font-semibold tabular-nums">${Number(o.total_amount).toFixed(2)}</p>
+                <p className="font-semibold tabular-nums">{formatPrice(Number(o.total_amount), platformCurrency)}</p>
               </div>
             ))}
           </div>

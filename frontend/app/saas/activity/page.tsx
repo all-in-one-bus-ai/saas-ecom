@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { getSupabaseServiceClient } from '@/lib/supabase/server';
+import { formatPrice } from '@/lib/currency';
 import { ShoppingCart, Building2, UserPlus, Package, Activity as ActivityIcon } from 'lucide-react';
 
 export const metadata = { title: 'Platform Activity' };
@@ -19,7 +20,7 @@ async function getActivity(): Promise<Event[]> {
   const admin = getSupabaseServiceClient();
 
   const [ordersRes, tenantsRes, productsRes, profilesRes] = await Promise.all([
-    admin.from('orders').select('id, order_number, tenant_id, total_amount, status, created_at, tenants(name, slug)').order('created_at', { ascending: false }).limit(20),
+    admin.from('orders').select('id, order_number, tenant_id, total_amount, currency, status, created_at, tenants(name, slug)').order('created_at', { ascending: false }).limit(20),
     admin.from('tenants').select('id, name, slug, plan, status, created_at').neq('id', '00000000-0000-0000-0000-000000000000').order('created_at', { ascending: false }).limit(20),
     admin.from('products').select('id, name, tenant_id, created_at, tenants(name, slug)').order('created_at', { ascending: false }).limit(20),
     admin.from('user_profiles').select('id, full_name, created_at').order('created_at', { ascending: false }).limit(20),
@@ -31,7 +32,7 @@ async function getActivity(): Promise<Event[]> {
     events.push({
       id: `order-${o.id}`,
       kind: 'order',
-      title: `Order ${o.order_number} · $${Number(o.total_amount).toFixed(2)}`,
+      title: `Order ${o.order_number} · ${formatPrice(Number(o.total_amount), (o.currency || 'USD').toUpperCase())}`,
       subtitle: `${o.tenants?.name ?? 'Unknown'} · ${o.status}`,
       at: o.created_at,
     });

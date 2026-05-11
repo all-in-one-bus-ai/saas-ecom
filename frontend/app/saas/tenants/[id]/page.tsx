@@ -5,6 +5,8 @@ import { requireSuperAdmin } from '@/lib/auth/get-session';
 import { getTenantDetail } from '@/lib/actions/saas-tenants-extra';
 import { updateTenant } from '@/lib/actions/tenants';
 import { deleteTenant } from '@/lib/actions/saas-tenants-extra';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,6 +55,7 @@ export default async function TenantDetailPage({ params }: Props) {
   if (res.error || !res.data) notFound();
 
   const { tenant, productCount, customerCount, recentOrders, totalRevenue, memberships } = res.data;
+  const currency = await resolveTenantCurrency(tenant.id);
 
   async function onUpdate(formData: FormData) {
     'use server';
@@ -95,7 +98,7 @@ export default async function TenantDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard title="Products" value={productCount} icon={Package} iconColor="text-blue-600" iconBg="bg-blue-50" />
         <StatCard title="Customers" value={customerCount} icon={UsersIcon} iconColor="text-sky-600" iconBg="bg-sky-50" />
-        <StatCard title="Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} iconColor="text-amber-600" iconBg="bg-amber-50" />
+        <StatCard title="Revenue" value={formatPrice(totalRevenue, currency)} icon={DollarSign} iconColor="text-amber-600" iconBg="bg-amber-50" />
         <StatCard title="Recent orders" value={recentOrders.length} icon={ShoppingCart} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
       </div>
 
@@ -177,7 +180,7 @@ export default async function TenantDetailPage({ params }: Props) {
                     <p className="font-medium text-foreground capitalize">{o.status}</p>
                     <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
                   </div>
-                  <p className="font-medium">${Number(o.total_amount).toFixed(2)}</p>
+                  <p className="font-medium">{formatPrice(Number(o.total_amount), currency)}</p>
                 </div>
               ))}
             </div>

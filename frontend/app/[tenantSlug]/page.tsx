@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getSupabasePublicClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
 import { StorefrontHeader } from '@/components/storefront/storefront-header';
 import { StorefrontProductGrid } from '@/components/storefront/storefront-product-grid';
 import { StorefrontHero } from '@/components/storefront/storefront-hero';
@@ -50,6 +51,7 @@ export default async function StorefrontPage({ params }: Props) {
   if (!data) notFound();
 
   const { tenant, products, categories } = data;
+  const currency = await resolveTenantCurrency(tenant.id);
 
   return (
     <>
@@ -62,6 +64,7 @@ export default async function StorefrontPage({ params }: Props) {
       <StorefrontProductGrid
         products={products}
         tenantSlug={params.tenantSlug}
+        currency={currency}
       />
       <footer className="mt-20 border-t py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

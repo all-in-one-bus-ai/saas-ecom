@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { isRedirectError } from 'next/dist/client/components/redirect';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient, getSupabaseServiceClient } from '@/lib/supabase/server';
+import { resolvePlatformCurrency } from '@/lib/currency-server';
 import { BillingClient } from './billing-client';
 import { Receipt } from 'lucide-react';
 

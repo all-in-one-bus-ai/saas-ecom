@@ -3,6 +3,8 @@ import { isRedirectError } from 'next/dist/client/components/redirect';
 import Link from 'next/link';
 import { requireTenantRole } from '@/lib/auth/get-session';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import { resolveTenantCurrency } from '@/lib/currency-server';
+import { formatPrice } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Package, Plus, CreditCard as Edit, Trash2 } from 'lucide-react';
@@ -40,6 +42,7 @@ export default async function ProductsPage({ params }: Props) {
   }
 
   const products = await getProducts(session.tenant.id);
+  const currency = await resolveTenantCurrency(session.tenant.id);
 
   return (
     <div className="animate-in">
@@ -104,10 +107,10 @@ export default async function ProductsPage({ params }: Props) {
                       {category?.name ?? '—'}
                     </td>
                     <td className="px-5 py-3.5 font-medium text-foreground">
-                      ${product.price.toFixed(2)}
+                      {formatPrice(product.price, currency)}
                       {product.compare_at_price && (
                         <span className="ml-1.5 text-xs text-muted-foreground line-through">
-                          ${product.compare_at_price.toFixed(2)}
+                          {formatPrice(product.compare_at_price, currency)}
                         </span>
                       )}
                     </td>

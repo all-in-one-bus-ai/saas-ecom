@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/currency';
 
 export default function BillingSuccessPage() {
   const search = useSearchParams();
@@ -32,6 +33,7 @@ export default function BillingSuccessPage() {
             amount: data.amount_total / 100,
             tenantSlug: data.metadata?.tenant_slug,
             plan: data.metadata?.plan,
+            currency: data.currency,
           });
           return;
         }
@@ -69,7 +71,7 @@ export default function BillingSuccessPage() {
             <h1 className="text-2xl font-bold mb-2 capitalize">{details?.plan} plan activated</h1>
             <p className="text-slate-400 text-sm mb-6">
               Thanks for upgrading. Your plan is now live, and we&apos;ve charged{' '}
-              <strong>${details?.amount?.toFixed(2)}</strong> for this month.
+              <strong>{formatPrice(details?.amount ?? 0, (details?.currency ?? 'USD').toUpperCase())}</strong> for this month.
             </p>
             {details?.tenantSlug ? (
               <Button asChild className="bg-sky-500 hover:bg-sky-400 text-white">
